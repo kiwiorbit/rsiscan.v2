@@ -2,6 +2,7 @@
 import React, { useState, memo, useMemo } from 'react';
 import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import type { SymbolData, Settings } from '../types';
+import FavoriteButton from './FavoriteButton';
 
 interface PriceGridCellProps {
     symbol: string;
@@ -38,11 +39,6 @@ const PriceGridCell: React.FC<PriceGridCellProps> = ({ symbol, data, onSelect, s
 
     const handleSelect = () => onSelect(symbol);
 
-    const handleToggleFavoriteClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onToggleFavorite(symbol);
-    };
-
     return (
         <div
             className="group relative flex flex-col items-center justify-center p-2 rounded-xl shadow-lg cursor-pointer transition-all duration-200 ease-in-out h-40 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border"
@@ -50,13 +46,12 @@ const PriceGridCell: React.FC<PriceGridCellProps> = ({ symbol, data, onSelect, s
         >
             <div className={`absolute inset-0 bg-light-card dark:bg-dark-card rounded-xl group-hover:shadow-lg group-hover:border-primary group-hover:-translate-y-0.5 group-hover:scale-[1.02] transition-all duration-200 ease-in-out`}></div>
             
-             <button
-                onClick={handleToggleFavoriteClick}
+             <FavoriteButton
+                symbol={symbol}
+                isFavorite={isFavorite}
+                onToggleFavorite={onToggleFavorite}
                 className="absolute top-2 right-2 z-10 p-1 text-lg text-medium-text dark:text-medium-text hover:text-yellow-400 transition-colors"
-                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-                <i className={`${isFavorite ? 'fa-solid text-yellow-400' : 'fa-regular'} fa-star`}></i>
-            </button>
+            />
 
             <div className="relative w-full h-full flex flex-col">
                 <div className="flex flex-col px-2 pt-1 pr-8">

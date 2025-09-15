@@ -1,28 +1,23 @@
 
+
 import React from 'react';
 
 interface SettingsPanelProps {
     isOpen: boolean;
     onClose: () => void;
     onOpenAssetModal: () => void;
-    onOpenThemeModal: () => void;
     onReset: () => void;
     areAlertsEnabled: boolean;
     onAlertsToggle: () => void;
-    showColoredBorders: boolean;
-    onColoredBordersToggle: () => void;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
     isOpen,
     onClose,
     onOpenAssetModal,
-    onOpenThemeModal,
     onReset,
     areAlertsEnabled,
     onAlertsToggle,
-    showColoredBorders,
-    onColoredBordersToggle,
 }) => {
     
     if (!isOpen) {
@@ -63,31 +58,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     <i className="fa-solid fa-list-check w-5 text-center text-lg text-primary-light dark:text-primary"></i>
                                     <span className="font-semibold">Asset List</span>
                                 </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => { onOpenThemeModal(); onClose(); }}
-                                    className="w-full text-left p-3 rounded-lg bg-light-bg/80 dark:bg-dark-bg/80 hover:bg-light-border dark:hover:bg-dark-border transition-colors flex items-center gap-4"
-                                >
-                                    <i className="fa-solid fa-palette w-5 text-center text-lg text-primary-light dark:text-primary"></i>
-                                    <span className="font-semibold">Theme & Appearance</span>
-                                </button>
-                            </li>
-                            <li className="p-3 rounded-lg bg-light-bg/80 dark:bg-dark-bg/80 flex items-center justify-between">
-                                <label htmlFor="colored-borders-toggle" className="font-semibold cursor-pointer pr-4 text-dark-text dark:text-light-text flex-grow">
-                                    Colored Cell Borders
-                                    <span className="block text-xs font-normal text-medium-text-light dark:text-medium-text">Apply heatmap colors to chart view borders.</span>
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="checkbox"
-                                        id="colored-borders-toggle"
-                                        className="sr-only peer"
-                                        checked={showColoredBorders}
-                                        onChange={onColoredBordersToggle}
-                                    />
-                                    <div className="w-11 h-6 bg-light-border peer-focus:outline-none rounded-full peer dark:bg-dark-border peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-dark-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-light dark:peer-checked:bg-primary"></div>
-                                </div>
                             </li>
                         </ul>
                     </div>

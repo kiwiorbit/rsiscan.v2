@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Settings } from '../types';
 
@@ -66,6 +67,18 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose, settings, onSe
                         type="color"
                         value={settings.rsi50Color}
                         onChange={(e) => handleSettingChange('rsi50Color', e.target.value)}
+                    />
+                    <SettingInput
+                        label="Stoch %K Color"
+                        type="color"
+                        value={settings.stochKColor}
+                        onChange={(e) => handleSettingChange('stochKColor', e.target.value)}
+                    />
+                    <SettingInput
+                        label="Stoch %D Color"
+                        type="color"
+                        value={settings.stochDColor}
+                        onChange={(e) => handleSettingChange('stochDColor', e.target.value)}
                     />
                     <div className="flex flex-col pt-2">
                         <label className="block mb-2 font-semibold text-dark-text dark:text-light-text">Line Width: <span className="font-mono text-primary">{settings.lineWidth}</span></label>

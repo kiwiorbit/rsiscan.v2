@@ -1,10 +1,10 @@
 
 import React, { memo } from 'react';
-import GridCell from './GridCell';
-import GridCellSkeleton from './GridCellSkeleton';
+import StochGridCell from './StochGridCell';
+import StochGridCellSkeleton from './StochGridCellSkeleton';
 import type { SymbolData, Settings } from '../types';
 
-interface GridProps {
+interface StochGridProps {
     symbols: string[];
     symbolsData: Record<string, SymbolData>;
     onSelectSymbol: (symbol: string) => void;
@@ -14,17 +14,17 @@ interface GridProps {
     loading: boolean;
 }
 
-const Grid: React.FC<GridProps> = ({ symbols, symbolsData, onSelectSymbol, settings, favorites, onToggleFavorite, loading }) => {
+const StochGrid: React.FC<StochGridProps> = ({ symbols, symbolsData, onSelectSymbol, settings, favorites, onToggleFavorite, loading }) => {
     
     return (
         <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
             role="grid"
-            aria-label="Cryptocurrency RSI data grid"
+            aria-label="Cryptocurrency Stochastic RSI data grid"
         >
             {loading ? (
                  symbols.map((symbol, index) => (
-                    <GridCellSkeleton 
+                    <StochGridCellSkeleton 
                         key={symbol} 
                         animationDelay={`${index * 0.03}s`} 
                     />
@@ -33,7 +33,7 @@ const Grid: React.FC<GridProps> = ({ symbols, symbolsData, onSelectSymbol, setti
                 symbols.map(symbol => {
                     const data = symbolsData[symbol];
                     return (
-                        <GridCell
+                        <StochGridCell
                             key={symbol}
                             symbol={symbol}
                             data={data}
@@ -49,4 +49,4 @@ const Grid: React.FC<GridProps> = ({ symbols, symbolsData, onSelectSymbol, setti
     );
 };
 
-export default memo(Grid);
+export default memo(StochGrid);

@@ -11,6 +11,7 @@ interface ModalProps {
     timeframe: Timeframe;
     onSwitchToPriceChart: () => void;
     onNavigateToFullView: () => void;
+    onSwitchToStochChart: () => void;
 }
 
 const BRUSH_SIZE = 3;
@@ -43,7 +44,7 @@ const getEventCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.Touc
     };
 };
 
-const Modal: React.FC<ModalProps> = ({ symbol, data, onClose, settings, timeframe, onSwitchToPriceChart, onNavigateToFullView }) => {
+const Modal: React.FC<ModalProps> = ({ symbol, data, onClose, settings, timeframe, onSwitchToPriceChart, onNavigateToFullView, onSwitchToStochChart }) => {
     const modalRef = useRef<HTMLDivElement>(null);
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -283,6 +284,14 @@ const Modal: React.FC<ModalProps> = ({ symbol, data, onClose, settings, timefram
                             title="Full View"
                         >
                             <i className="fa-solid fa-expand"></i>
+                        </button>
+                        <button 
+                            onClick={onSwitchToStochChart} 
+                            className="text-xl w-10 h-10 flex items-center justify-center rounded-lg text-medium-text-light dark:text-medium-text hover:bg-light-border dark:hover:bg-dark-border transition-colors" 
+                            aria-label="View Stochastic RSI chart"
+                            title="View Stochastic RSI Chart"
+                        >
+                            <i className="fa-solid fa-chart-simple"></i>
                         </button>
                         <button 
                             onClick={onSwitchToPriceChart} 

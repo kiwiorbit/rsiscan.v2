@@ -2,6 +2,7 @@
 import React from 'react';
 import type { SymbolData } from '../types';
 import { getRsiColorInfo } from '../constants';
+import FavoriteButton from './FavoriteButton';
 
 interface HeatmapCellProps {
     symbol: string;
@@ -20,11 +21,6 @@ const HeatmapCell: React.FC<HeatmapCellProps> = ({ symbol, data, onSelect, isFav
 
     const handleSelect = () => onSelect(symbol);
 
-    const handleToggleFavoriteClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onToggleFavorite(symbol);
-    };
-
     return (
         <div
             className={`group relative flex flex-col justify-between p-3 rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-105 hover:z-10 hover:shadow-2xl ${colorClasses}`}
@@ -33,13 +29,13 @@ const HeatmapCell: React.FC<HeatmapCellProps> = ({ symbol, data, onSelect, isFav
         >
             <div className="flex justify-between items-start">
                 <span className="font-bold text-sm tracking-tight">{symbol}</span>
-                <button
-                    onClick={handleToggleFavoriteClick}
-                    className="z-10 text-base transition-colors"
-                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                    <i className={`${isFavorite ? 'fa-solid text-yellow-400' : 'fa-regular'} fa-star opacity-70 group-hover:opacity-100 transition-opacity`}></i>
-                </button>
+                <FavoriteButton
+                    symbol={symbol}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={onToggleFavorite}
+                    className="z-10 text-base"
+                    iconClassName="opacity-70 group-hover:opacity-100 transition-opacity"
+                />
             </div>
             <div className="text-right">
                 <span className="font-mono font-semibold text-lg">

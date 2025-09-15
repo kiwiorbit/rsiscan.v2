@@ -1,18 +1,21 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import CryptoHeader from './components/CryptoHeader';
 import Grid from './components/Grid';
 import Heatmap from './components/Heatmap';
 import PriceGrid from './components/PriceGrid';
+import StochGrid from './components/StochGrid';
 import Modal from './components/Modal';
 import PriceDetailModal from './components/PriceDetailModal';
+import StochDetailModal from './components/StochDetailModal';
 import SettingsPanel from './components/SettingsPanel';
 import Footer from './components/Footer';
 import AssetListModal from './components/AssetListModal';
-import ThemeModal from './components/ThemeModal';
 import FullViewPage from './components/FullViewPage';
+import RefreshProgressBar from './components/RefreshProgressBar';
 import { DEFAULT_SYMBOLS, TIMEFRAMES, LIGHT_THEME_SETTINGS, DARK_THEME_SETTINGS } from './constants';
-import type { Settings, SymbolData, Timeframe, Theme, Notification, SortOrder, ViewMode } from './types';
+import type { Settings, SymbolData, Timeframe, Theme, Notification, SortOrder, ViewMode, ActiveModal } from './types';
 import { fetchRsiForSymbol } from './services/binanceService';
 
 // === Splash Screen Component ===
@@ -55,7 +58,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({ toast, onRemove }
             setIsVisible(false); // Trigger exit animation
             // Use the ref to ensure the latest onRemove function is called
             setTimeout(() => onRemoveRef.current(toast.id), 500); 
-        }, 10000); // 10 second duration
+        }, 5000); // 10 second duration
 
         return () => {
             cancelAnimationFrame(enter);
@@ -171,10 +174,9 @@ const App: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<SortOrder>('default');
 
     const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
-    const [activeModal, setActiveModal] = useState<'rsi' | 'price' | null>(null);
+    const [activeModal, setActiveModal] = useState<ActiveModal>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
-    const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
     // RSI Alert State
     const [areAlertsEnabled, setAreAlertsEnabled] = useState<boolean>(() => {
@@ -186,16 +188,6 @@ const App: React.FC = () => {
         }
     });
     
-    // Colored Borders State
-    const [showColoredBorders, setShowColoredBorders] = useState<boolean>(() => {
-        try {
-            const saved = localStorage.getItem('crypto-colored-borders-enabled');
-            return saved ? JSON.parse(saved) : false; // Default to false
-        } catch {
-            return false;
-        }
-    });
-
     const [lastAlertedRsiStatus, setLastAlertedRsiStatus] = useState<Record<string, 'overbought' | 'oversold' | 'neutral'>>({});
     const [liveToasts, setLiveToasts] = useState<Notification[]>([]);
     
@@ -209,6 +201,10 @@ const App: React.FC = () => {
             return [];
         }
     });
+    
+    const [progress, setProgress] = useState(100);
+    const lastFetchTimeRef = useRef(Date.now());
+    const REFRESH_INTERVAL = 60000;
 
     useEffect(() => {
         const root = window.document.documentElement;
@@ -235,10 +231,6 @@ const App: React.FC = () => {
     useEffect(() => {
         localStorage.setItem('crypto-alerts-enabled', JSON.stringify(areAlertsEnabled));
     }, [areAlertsEnabled]);
-
-    useEffect(() => {
-        localStorage.setItem('crypto-colored-borders-enabled', JSON.stringify(showColoredBorders));
-    }, [showColoredBorders]);
 
      useEffect(() => {
         localStorage.setItem('crypto-notifications', JSON.stringify(notifications));
@@ -273,9 +265,28 @@ const App: React.FC = () => {
     }, [userSymbols]);
 
     useEffect(() => {
-        fetchData(timeframe);
-        const interval = setInterval(() => fetchData(timeframe), 60000);
-        return () => clearInterval(interval);
+        const fetchDataAndResetTimer = () => {
+            fetchData(timeframe);
+            lastFetchTimeRef.current = Date.now();
+        };
+
+        fetchDataAndResetTimer(); // Initial fetch
+        const dataFetchInterval = setInterval(fetchDataAndResetTimer, REFRESH_INTERVAL);
+
+        let animationFrameId: number;
+        const updateProgress = () => {
+            const elapsedTime = Date.now() - lastFetchTimeRef.current;
+            const progressPercentage = 100 - (elapsedTime / REFRESH_INTERVAL) * 100;
+            setProgress(Math.max(0, progressPercentage));
+            animationFrameId = requestAnimationFrame(updateProgress);
+        };
+        
+        animationFrameId = requestAnimationFrame(updateProgress);
+
+        return () => {
+            clearInterval(dataFetchInterval);
+            cancelAnimationFrame(animationFrameId);
+        };
     }, [timeframe, fetchData]);
 
     const addNotification = useCallback((notification: Omit<Notification, 'id' | 'read'>) => {
@@ -349,7 +360,6 @@ const App: React.FC = () => {
         localStorage.removeItem('crypto-user-symbols');
         localStorage.removeItem('crypto-favorites');
         localStorage.removeItem('crypto-alerts-enabled');
-        localStorage.removeItem('crypto-colored-borders-enabled');
         localStorage.removeItem('crypto-notifications');
         
         setTheme('dark');
@@ -358,7 +368,6 @@ const App: React.FC = () => {
         setUserSymbols(DEFAULT_SYMBOLS);
         setFavorites([]);
         setAreAlertsEnabled(true);
-        setShowColoredBorders(false);
         setNotifications([]);
         setIsSettingsOpen(false);
     }, []);
@@ -378,6 +387,11 @@ const App: React.FC = () => {
         setActiveSymbol(symbol);
         setActiveModal('rsi');
     }, []);
+    
+    const handleSelectStochSymbol = useCallback((symbol: string) => {
+        setActiveSymbol(symbol);
+        setActiveModal('stoch');
+    }, []);
 
     const handleSelectPriceSymbol = useCallback((symbol: string) => {
         setActiveSymbol(symbol);
@@ -392,6 +406,10 @@ const App: React.FC = () => {
 
     const handleSwitchToRsiChart = useCallback(() => {
         setActiveModal('rsi');
+    }, []);
+    
+    const handleSwitchToStochChart = useCallback(() => {
+        setActiveModal('stoch');
     }, []);
 
     const handleCloseModal = useCallback(() => {
@@ -422,10 +440,6 @@ const App: React.FC = () => {
     const handleAlertsToggle = useCallback(() => {
         setAreAlertsEnabled(prev => !prev);
     }, []);
-
-    const handleColoredBordersToggle = useCallback(() => {
-        setShowColoredBorders(prev => !prev);
-    }, []);
     
     const handleSortChange = useCallback(() => {
         setSortOrder(currentOrder => {
@@ -433,6 +447,10 @@ const App: React.FC = () => {
                 if (currentOrder === 'chg-asc') return 'chg-desc';
                 if (currentOrder === 'chg-desc') return 'default';
                 return 'chg-asc';
+            } else if (viewMode === 'stoch') {
+                if (currentOrder === 'stoch-asc') return 'stoch-desc';
+                if (currentOrder === 'stoch-desc') return 'default';
+                return 'stoch-asc';
             } else {
                 if (currentOrder === 'rsi-asc') return 'rsi-desc';
                 if (currentOrder === 'rsi-desc') return 'default';
@@ -489,6 +507,18 @@ const App: React.FC = () => {
                     return sortOrder === 'chg-desc' ? chgB - chgA : chgA - chgB;
                 }
 
+                if (sortOrder.startsWith('stoch')) {
+                    const getK = (data: SymbolData | undefined) => {
+                        if (!data?.stochK || data.stochK.length === 0) {
+                            return (sortOrder === 'stoch-desc' ? -1 : 101);
+                        }
+                        return data.stochK[data.stochK.length - 1].value;
+                    };
+                    const kA = getK(dataA);
+                    const kB = getK(dataB);
+                    return sortOrder === 'stoch-desc' ? kB - kA : kA - kB;
+                }
+
                 return 0;
             });
         }
@@ -523,6 +553,16 @@ const App: React.FC = () => {
                     return <>Chg %</>;
             }
         }
+        if (viewMode === 'stoch') {
+            switch (sortOrder) {
+                case 'stoch-asc':
+                    return <>%K <i className="fa-solid fa-arrow-up text-xs"></i></>;
+                case 'stoch-desc':
+                    return <>%K <i className="fa-solid fa-arrow-down text-xs"></i></>;
+                default:
+                    return <>Sort by %K</>;
+            }
+        }
         switch (sortOrder) {
             case 'rsi-asc':
                 return <>RSI <i className="fa-solid fa-arrow-up text-xs"></i></>;
@@ -536,6 +576,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-dark-text dark:text-light-text font-sans flex flex-col">
+            <RefreshProgressBar progress={progress} />
             <ToastContainer toasts={liveToasts} onRemove={removeLiveToast} />
             <div className="container mx-auto p-4 flex-grow">
                 <CryptoHeader
@@ -557,6 +598,9 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-1 bg-light-card dark:bg-dark-card p-1 rounded-lg border border-light-border dark:border-dark-border">
                             <button onClick={() => handleViewModeChange('chart')} className={`px-3 py-2 text-sm rounded-md transition ${viewMode === 'chart' ? 'bg-primary-light dark:bg-primary text-white dark:text-dark-bg' : 'text-medium-text-light dark:text-medium-text hover:bg-light-border dark:hover:bg-dark-border'}`} aria-label="RSI Chart View" title="RSI Chart View">
                                 <i className="fa-solid fa-chart-line"></i>
+                            </button>
+                             <button onClick={() => handleViewModeChange('stoch')} className={`px-3 py-2 text-sm rounded-md transition ${viewMode === 'stoch' ? 'bg-primary-light dark:bg-primary text-white dark:text-dark-bg' : 'text-medium-text-light dark:text-medium-text hover:bg-light-border dark:hover:bg-dark-border'}`} aria-label="Stochastic RSI View" title="Stochastic RSI View">
+                                <i className="fa-solid fa-chart-simple"></i>
                             </button>
                             <button onClick={() => handleViewModeChange('heatmap')} className={`px-3 py-2 text-sm rounded-md transition ${viewMode === 'heatmap' ? 'bg-primary-light dark:bg-primary text-white dark:text-dark-bg' : 'text-medium-text-light dark:text-medium-text hover:bg-light-border dark:hover:bg-dark-border'}`} aria-label="Heatmap View" title="Heatmap View">
                                 <i className="fa-solid fa-table-cells"></i>
@@ -598,7 +642,17 @@ const App: React.FC = () => {
                             settings={settings}
                             favorites={favorites}
                             onToggleFavorite={toggleFavorite}
-                            showColoredBorders={showColoredBorders}
+                        />
+                    )}
+                    {viewMode === 'stoch' && (
+                        <StochGrid
+                            loading={loading}
+                            symbols={displayedSymbols}
+                            symbolsData={symbolsData}
+                            onSelectSymbol={handleSelectStochSymbol}
+                            settings={settings}
+                            favorites={favorites}
+                            onToggleFavorite={toggleFavorite}
                         />
                     )}
                     {viewMode === 'heatmap' && (
@@ -633,6 +687,7 @@ const App: React.FC = () => {
                     timeframe={timeframe}
                     onSwitchToPriceChart={handleSwitchToPriceChart}
                     onNavigateToFullView={handleNavigateToFullView}
+                    onSwitchToStochChart={handleSwitchToStochChart}
                 />
             )}
             {activeModal === 'price' && activeSymbol && symbolsData[activeSymbol] && (
@@ -643,18 +698,27 @@ const App: React.FC = () => {
                     settings={settings}
                     timeframe={timeframe}
                     onSwitchToRsiChart={handleSwitchToRsiChart}
+                    onSwitchToStochChart={handleSwitchToStochChart}
+                />
+            )}
+             {activeModal === 'stoch' && activeSymbol && symbolsData[activeSymbol] && (
+                <StochDetailModal
+                    symbol={activeSymbol}
+                    data={symbolsData[activeSymbol]}
+                    onClose={handleCloseModal}
+                    settings={settings}
+                    timeframe={timeframe}
+                    onSwitchToRsiChart={handleSwitchToRsiChart}
+                    onSwitchToPriceChart={handleSwitchToPriceChart}
                 />
             )}
             <SettingsPanel
                 isOpen={isSettingsOpen}
                 onClose={() => setIsSettingsOpen(false)}
                 onOpenAssetModal={() => setIsAssetModalOpen(true)}
-                onOpenThemeModal={() => setIsThemeModalOpen(true)}
                 areAlertsEnabled={areAlertsEnabled}
                 onAlertsToggle={handleAlertsToggle}
                 onReset={handleResetSettings}
-                showColoredBorders={showColoredBorders}
-                onColoredBordersToggle={handleColoredBordersToggle}
             />
             <AssetListModal
                 isOpen={isAssetModalOpen}
@@ -662,12 +726,6 @@ const App: React.FC = () => {
                 onSave={handleSaveAssetList}
                 allSymbols={allSymbols}
                 currentSymbols={userSymbols}
-            />
-            <ThemeModal 
-                isOpen={isThemeModalOpen}
-                onClose={() => setIsThemeModalOpen(false)}
-                settings={settings}
-                onSettingsChange={setSettings}
             />
             <Footer />
         </div>

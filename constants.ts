@@ -160,6 +160,8 @@ export const DARK_THEME_SETTINGS: Settings = {
     smaColor: '#4ec3fa',
     rsi50Color: '#4a5568',
     lineWidth: 2,
+    stochKColor: '#29ffb8',
+    stochDColor: '#4ec3fa',
 };
 
 export const LIGHT_THEME_SETTINGS: Settings = {
@@ -170,6 +172,8 @@ export const LIGHT_THEME_SETTINGS: Settings = {
     smaColor: '#0077b6',
     rsi50Color: '#b0b8c9',
     lineWidth: 2,
+    stochKColor: '#29ffb8',
+    stochDColor: '#4ec3fa',
 };
 
 export interface RsiColorInfo {

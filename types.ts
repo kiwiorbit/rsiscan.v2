@@ -33,6 +33,8 @@ export interface PriceDataPoint {
 export interface SymbolData {
     rsi: RsiDataPoint[];
     sma: RsiDataPoint[];
+    stochK: RsiDataPoint[];
+    stochD: RsiDataPoint[];
     price: number;
     volume: number;
     klines: PriceDataPoint[];
@@ -48,9 +50,11 @@ export interface Settings {
     smaColor: string;
     rsi50Color: string;
     lineWidth: number;
+    stochKColor: string;
+    stochDColor: string;
 }
 
-export type SortOrder = 'default' | 'rsi-asc' | 'rsi-desc' | 'chg-asc' | 'chg-desc';
+export type SortOrder = 'default' | 'rsi-asc' | 'rsi-desc' | 'chg-asc' | 'chg-desc' | 'stoch-asc' | 'stoch-desc';
 
 export type DrawingTool = 'brush' | 'trendline';
 
@@ -62,7 +66,9 @@ export interface Drawing {
 }
 
 export type Theme = 'light' | 'dark';
-export type ViewMode = 'chart' | 'heatmap' | 'price';
+export type ViewMode = 'chart' | 'heatmap' | 'price' | 'stoch';
+export type ActiveModal = 'rsi' | 'price' | 'stoch' | null;
+
 
 export interface Notification {
   id: number;

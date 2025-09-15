@@ -1,3 +1,5 @@
+
+
 import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Label, ReferenceArea } from 'recharts';
 import * as htmlToImage from 'html-to-image';
@@ -13,6 +15,7 @@ interface ModalProps {
     settings: Settings;
     timeframe: Timeframe;
     onSwitchToRsiChart: () => void;
+    onSwitchToStochChart: () => void;
 }
 
 const BRUSH_SIZE = 3;
@@ -78,7 +81,7 @@ const embedFontsInCss = async (url: string): Promise<string> => {
     }
 };
 
-const PriceDetailModal: React.FC<ModalProps> = ({ symbol, data, onClose, settings, timeframe, onSwitchToRsiChart }) => {
+const PriceDetailModal: React.FC<ModalProps> = ({ symbol, data, onClose, settings, timeframe, onSwitchToRsiChart, onSwitchToStochChart }) => {
     const modalRef = useRef<HTMLDivElement>(null);
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartAreaRef = useRef<HTMLDivElement>(null);
@@ -144,7 +147,7 @@ const PriceDetailModal: React.FC<ModalProps> = ({ symbol, data, onClose, setting
     
     const volumeProfileData: VolumeProfileData | null = useMemo(() => {
         if (!data?.klines || data.klines.length === 0) return null;
-        return calculateVolumeProfile(data.klines, 70); // Increased resolution
+        return calculateVolumeProfile(data.klines, 100); // High resolution volume profile
     }, [data?.klines]);
     
     const goldenPocketLevels = useMemo(() => {
@@ -442,6 +445,14 @@ const PriceDetailModal: React.FC<ModalProps> = ({ symbol, data, onClose, setting
                             title="Toggle Volume Profile"
                         >
                             <i className="fa-solid fa-chart-bar"></i>
+                        </button>
+                         <button 
+                            onClick={onSwitchToStochChart} 
+                            className="text-xl w-10 h-10 flex items-center justify-center rounded-lg text-medium-text-light dark:text-medium-text hover:bg-light-border dark:hover:bg-dark-border transition-colors" 
+                            aria-label="View Stochastic RSI chart"
+                            title="View Stochastic RSI Chart"
+                        >
+                            <i className="fa-solid fa-chart-simple"></i>
                         </button>
                         <button 
                             onClick={onSwitchToRsiChart} 

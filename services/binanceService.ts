@@ -1,4 +1,3 @@
-
 import type { SymbolData, Timeframe, RsiDataPoint, PriceDataPoint, HTFLevels } from '../types';
 import { calculateVolumeProfile } from './volumeProfileService';
 
@@ -54,12 +53,50 @@ const calculateSMA = (data: RsiDataPoint[], length: number): RsiDataPoint[] => {
     return smaValues;
 };
 
+const calculateRawStochastic = (rsiData: RsiDataPoint[], length: number): RsiDataPoint[] => {
+    if (rsiData.length < length) return [];
+
+    const stochValues: RsiDataPoint[] = [];
+
+    for (let i = length - 1; i < rsiData.length; i++) {
+        const window = rsiData.slice(i - length + 1, i + 1);
+        const rsiValuesInWindow = window.map(p => p.value);
+        const highestRsi = Math.max(...rsiValuesInWindow);
+        const lowestRsi = Math.min(...rsiValuesInWindow);
+        const currentRsi = rsiData[i].value;
+
+        let stoch = 0;
+        if (highestRsi - lowestRsi > 0) {
+            stoch = 100 * (currentRsi - lowestRsi) / (highestRsi - lowestRsi);
+        }
+        
+        stochValues.push({
+            time: rsiData[i].time,
+            value: stoch,
+        });
+    }
+    return stochValues;
+};
+
+const calculateStochRSI = (rsiData: RsiDataPoint[], stochLength: number, kLength: number, dLength: number) => {
+    const rawStoch = calculateRawStochastic(rsiData, stochLength);
+    const kLine = calculateSMA(rawStoch, kLength);
+    const dLine = calculateSMA(kLine, dLength);
+    return { kLine, dLine };
+};
+
 
 export const fetchRsiForSymbol = async (symbol: string, timeframe: Timeframe, limit: number = 80): Promise<SymbolData> => {
     try {
         const rsiPeriod = 14;
         const smaPeriod = 14;
-        const url = `${API_BASE_URL}?symbol=${symbol}&interval=${timeframe}&limit=${limit + rsiPeriod + 1}`;
+        const stochLength = 14;
+        const kLength = 3;
+        const dLength = 3;
+        // Need to ensure we fetch enough data for all calculations
+        const fetchLimit = limit + rsiPeriod + stochLength + kLength + dLength;
+
+        const url = `${API_BASE_URL}?symbol=${symbol}&interval=${timeframe}&limit=${fetchLimit}`;
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Failed to fetch data for ${symbol}`);
@@ -67,11 +104,12 @@ export const fetchRsiForSymbol = async (symbol: string, timeframe: Timeframe, li
         const klines = await response.json();
 
         if (!klines || klines.length === 0) {
-            return { rsi: [], sma: [], price: 0, volume: 0, klines: [] };
+            return { rsi: [], sma: [], stochK: [], stochD: [], price: 0, volume: 0, klines: [] };
         }
 
         const rsiData = calculateRSI(klines, rsiPeriod);
         const smaData = calculateSMA(rsiData, smaPeriod);
+        const { kLine: stochK, dLine: stochD } = calculateStochRSI(rsiData, stochLength, kLength, dLength);
         const latestKline = klines[klines.length - 1];
 
         const processedKlines: PriceDataPoint[] = klines.map((k: any[]) => ({
@@ -87,13 +125,15 @@ export const fetchRsiForSymbol = async (symbol: string, timeframe: Timeframe, li
         return {
             rsi: rsiData.slice(-limit),
             sma: smaData.slice(-limit),
+            stochK: stochK.slice(-limit),
+            stochD: stochD.slice(-limit),
             price: parseFloat(latestKline[4]),
             volume: parseFloat(latestKline[5]),
             klines: processedKlines,
         };
     } catch (error) {
         // console.error(`Error fetching data for ${symbol}:`, error);
-        return { rsi: [], sma: [], price: 0, volume: 0, klines: [] }; // Return empty data on error
+        return { rsi: [], sma: [], stochK: [], stochD: [], price: 0, volume: 0, klines: [] }; // Return empty data on error
     }
 };
 
@@ -169,8 +209,8 @@ export const fetchHigherTimeframeLevels = async (symbol: string): Promise<HTFLev
         const weeklyKlines = processKlines(weeklyKlinesRaw);
         const monthlyKlines = processKlines(monthlyKlinesRaw);
 
-        const weeklyProfile = calculateVolumeProfile(weeklyKlines, 70);
-        const monthlyProfile = calculateVolumeProfile(monthlyKlines, 70);
+        const weeklyProfile = calculateVolumeProfile(weeklyKlines, 100);
+        const monthlyProfile = calculateVolumeProfile(monthlyKlines, 100);
 
         return {
             weekly: {
