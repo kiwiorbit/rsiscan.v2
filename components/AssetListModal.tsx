@@ -124,7 +124,7 @@ const AssetListModal: React.FC<AssetListModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 {/* Symbol List */}
-                <div className="flex-grow p-4 overflow-y-auto overflow-x-hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 custom-scrollbar">
+                <div className="flex-grow p-4 overflow-y-auto overflow-x-hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {filteredSymbols.map(symbol => (
                         <div key={symbol} className="group flex items-center p-2 rounded-lg bg-light-bg/80 dark:bg-dark-bg/80">
                             <input
