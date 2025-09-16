@@ -248,8 +248,9 @@
         --aurora-color-1: #84fab0; /* Light, fresh green */
         --aurora-color-2: #8fd3f4; /* Airy, light blue */
         --aurora-color-3: #fbc2eb; /* Soft, warm pink */
-        --scrollbar-thumb-color: #ced4da;
-        --scrollbar-thumb-hover-color: #b0b8c9;
+        --scrollbar-track-color: #f0f2f5; /* light-bg */
+        --scrollbar-thumb-color: #00a878; /* primary-light */
+        --scrollbar-thumb-hover-color: #0077b6;
       }
 
       /* Dark Theme Colors */
@@ -257,8 +258,9 @@
         --aurora-color-1: #29ffb8;
         --aurora-color-2: #4ec3fa;
         --aurora-color-3: #313a4a;
-        --scrollbar-thumb-color: #4a5568;
-        --scrollbar-thumb-hover-color: #718096;
+        --scrollbar-track-color: #181c24; /* dark-bg */
+        --scrollbar-thumb-color: #29ffb8; /* primary */
+        --scrollbar-thumb-hover-color: #4ec3fa;
       }
 
       .aurora-shape1 {
@@ -397,25 +399,35 @@
           }
       }
 
-      /* === Custom Scrollbar === */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      /* === Global Themed Scrollbar === */
+      /* For Firefox */
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
       }
 
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
+      /* For Webkit browsers (Chrome, Safari, Edge) */
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
       }
 
-      .custom-scrollbar::-webkit-scrollbar-thumb {
+      ::-webkit-scrollbar-track {
+        background: var(--scrollbar-track-color);
+      }
+
+      ::-webkit-scrollbar-thumb {
         background-color: var(--scrollbar-thumb-color);
         border-radius: 10px;
-        border: 2px solid transparent;
-        background-clip: content-box;
+        border: 3px solid var(--scrollbar-track-color);
       }
 
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      ::-webkit-scrollbar-thumb:hover {
         background-color: var(--scrollbar-thumb-hover-color);
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: transparent;
       }
 
     </style>
