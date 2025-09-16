@@ -45,7 +45,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </div>
                 
                 {/* Main Content (menu) */}
-                <div className="flex-grow p-4 space-y-6 overflow-y-auto custom-scrollbar">
+                <div className="flex-grow p-4 space-y-6 overflow-y-auto">
                     {/* Customization Section */}
                     <div>
                         <h4 className="px-3 pb-2 font-semibold text-medium-text-light dark:text-medium-text uppercase tracking-wider text-sm">Customization</h4>
