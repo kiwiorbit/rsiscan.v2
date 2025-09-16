@@ -13,7 +13,6 @@ import SettingsPanel from './components/SettingsPanel';
 import Footer from './components/Footer';
 import AssetListModal from './components/AssetListModal';
 import FullViewPage from './components/FullViewPage';
-// import RefreshProgressBar from './components/RefreshProgressBar';
 import { DEFAULT_SYMBOLS, TIMEFRAMES, LIGHT_THEME_SETTINGS, DARK_THEME_SETTINGS } from './constants';
 import type { Settings, SymbolData, Timeframe, Theme, Notification, SortOrder, ViewMode, ActiveModal } from './types';
 import { fetchRsiForSymbol } from './services/binanceService';
@@ -202,8 +201,6 @@ const App: React.FC = () => {
         }
     });
     
-    const [progress, setProgress] = useState(100);
-    const lastFetchTimeRef = useRef(Date.now());
     const REFRESH_INTERVAL = 60000;
 
     useEffect(() => {
@@ -265,27 +262,11 @@ const App: React.FC = () => {
     }, [userSymbols]);
 
     useEffect(() => {
-        const fetchDataAndResetTimer = () => {
-            fetchData(timeframe);
-            lastFetchTimeRef.current = Date.now();
-        };
-
-        fetchDataAndResetTimer(); // Initial fetch
-        const dataFetchInterval = setInterval(fetchDataAndResetTimer, REFRESH_INTERVAL);
-
-        let animationFrameId: number;
-        const updateProgress = () => {
-            const elapsedTime = Date.now() - lastFetchTimeRef.current;
-            const progressPercentage = 100 - (elapsedTime / REFRESH_INTERVAL) * 100;
-            setProgress(Math.max(0, progressPercentage));
-            animationFrameId = requestAnimationFrame(updateProgress);
-        };
-        
-        animationFrameId = requestAnimationFrame(updateProgress);
+        fetchData(timeframe); // Initial fetch
+        const dataFetchInterval = setInterval(() => fetchData(timeframe), REFRESH_INTERVAL);
 
         return () => {
             clearInterval(dataFetchInterval);
-            cancelAnimationFrame(animationFrameId);
         };
     }, [timeframe, fetchData]);
 
@@ -576,7 +557,6 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-dark-text dark:text-light-text font-sans flex flex-col">
-            <RefreshProgressBar progress={progress} />
             <ToastContainer toasts={liveToasts} onRemove={removeLiveToast} />
             <div className="container mx-auto p-4 flex-grow">
                 <CryptoHeader
