@@ -48,7 +48,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, notificat
                     </button>
                 )}
             </div>
-            <div className="flex-grow max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="flex-grow max-h-[60vh] overflow-y-auto">
                 {notifications.length === 0 ? (
                     <div className="text-center p-8 text-sm text-medium-text-light dark:text-medium-text">
                         <i className="fa-solid fa-bell-slash text-4xl mb-4 opacity-70"></i>
