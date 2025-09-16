@@ -13,7 +13,7 @@ import SettingsPanel from './components/SettingsPanel';
 import Footer from './components/Footer';
 import AssetListModal from './components/AssetListModal';
 import FullViewPage from './components/FullViewPage';
-import RefreshProgressBar from './components/RefreshProgressBar';
+// import RefreshProgressBar from './components/RefreshProgressBar';
 import { DEFAULT_SYMBOLS, TIMEFRAMES, LIGHT_THEME_SETTINGS, DARK_THEME_SETTINGS } from './constants';
 import type { Settings, SymbolData, Timeframe, Theme, Notification, SortOrder, ViewMode, ActiveModal } from './types';
 import { fetchRsiForSymbol } from './services/binanceService';
